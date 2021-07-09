@@ -2,17 +2,22 @@ import React, { useState } from "react";
 import { Button, Icon, Form, Input } from "semantic-ui-react";
 import firebase from "../../../utils/Firebase";
 import "firebase/auth";
+import {toast} from 'react-toastify'
+
 import { validateEmail } from "../../../utils/Validations";
 import "./RegisterForm.scss";
-import { errorFromList } from "verror";
+// import { errorFromList } from "verror";
 
 export default function RegisterForm({ setSelectedForm }) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState(defaultValueForm());
   const [formError, setFormError] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
 
   const onSubmit = () => {
+
+    toast.success("Error...")
+
     setFormError({});
     let errors = {};
     let formOk = true;
@@ -34,6 +39,21 @@ export default function RegisterForm({ setSelectedForm }) {
     setFormError(errors);
 
     if (formOk) {
+      setIsLoading(true);
+      firebase
+        .auth()
+        .createUserWithEmailAndPassword(formData.email, formData.password)
+        .then(() => {
+          console.log("Registro completado");
+        })
+        .catch(() => {
+          console.log("error al crear la cuenta");
+          // setIsLoading(false); por que en finally se cumple
+        })
+        .finally(() => {
+          setIsLoading(false); 
+          setSelectedForm(null)
+        });
       console.log("formulario valido");
     }
   };
@@ -107,7 +127,9 @@ export default function RegisterForm({ setSelectedForm }) {
             <span className="error-text">Por favor, ingresa un nombre</span>
           )}
         </Form.Field>
-        <Button type="submit">Continuar</Button>
+        <Button type="submit" loading={isLoading}>
+          Continuar
+        </Button>
       </Form>
 
       <div className="register-form__options">
